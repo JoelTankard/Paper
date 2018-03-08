@@ -1,0 +1,27 @@
+@import '../../variables.less';
+
+.objSelect{
+    pointer-events: all;
+    position: absolute;
+    outline: 1px dashed @primaryColor;
+    opacity: 0;
+    width: 20px;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.5);
+    .dragNode{
+        height: 10px;
+        width: 10px;
+        background-color: #fff;
+        border: 1px @primaryColor solid;
+        &.abs-left-top{ margin: -5px 0 0 -5px; }
+        &.abs-center-top{ margin: -5px 0 0 0; }
+        &.abs-right-top{ margin: -5px -5px 0 0; }
+        &.abs-left-center{ margin: 0 0 0 -5px; }
+        &.abs-right-center{ margin: 0 -5px 0 0; }
+        &.abs-left-bottom{ margin: 0 0 -5px -5px; }
+        &.abs-center-bottom{ margin: 0 0 -5px 0; }
+        &.abs-right-bottom{ margin: 0 -5px -5px 0; }
+    }
+    &.show{
+        opacity: 1;
+    }
+}

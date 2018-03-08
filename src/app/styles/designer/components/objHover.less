@@ -1,0 +1,13 @@
+@import '../../variables.less';
+
+.objHover{
+    pointer-events: none;
+    position: absolute;
+    outline: 1px dashed @primaryColor;
+    opacity: 0;
+    width: 20px;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.5);
+    &.show{
+        opacity: .5;
+    }
+}
