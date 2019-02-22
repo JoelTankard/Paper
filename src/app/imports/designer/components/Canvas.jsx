@@ -47,7 +47,7 @@ export default class Canvas extends  React.Component {
                 </div>   
 
                 {/* Shows when object is clicked */}
-                <ObjSelect ref="objSelect" {...{ file : file }}/>
+                <ObjSelect ref="objSelect" {... this.props }/>
 
                 {/* Shows when hovering over an object */}
                 <ObjHover ref="objHover" />

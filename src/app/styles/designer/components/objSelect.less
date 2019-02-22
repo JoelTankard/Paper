@@ -1,13 +1,15 @@
 @import '../../variables.less';
 
 .objSelect{
-    pointer-events: all;
+    pointer-events: auto;        
     position: absolute;
     outline: 1px dashed @primaryColor;
-    opacity: 0;
+    display: none;
     width: 20px;
     box-shadow: 0 0 0 1px rgba(255,255,255,.5);
+  
     .dragNode{
+        pointer-events: all;
         height: 10px;
         width: 10px;
         background-color: #fff;
@@ -22,6 +24,6 @@
         &.abs-right-bottom{ margin: 0 -5px -5px 0; }
     }
     &.show{
-        opacity: 1;
+        display: block;
     }
 }

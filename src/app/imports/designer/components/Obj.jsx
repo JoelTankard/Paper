@@ -1,4 +1,5 @@
 import React from 'react';
+import '../../../styles/designer/components/obj.less';
 
 export default class Obj extends  React.Component {
   constructor(props, context) {
@@ -44,13 +45,14 @@ export default class Obj extends  React.Component {
   render () {
     let obj = this.props.object;
     let dimentions = obj.dimentions;
-    let style = obj.style;
+    let style = _.clone(obj.style);
     let content = {};
     _.merge(style, {
       width: dimentions && dimentions.width ? dimentions.width : 'auto',
       height: dimentions && dimentions.height ? dimentions.height : 'auto',
       transform: 'translate(' + ( dimentions && dimentions.x ? dimentions.x : 0 ) + 'px ,' + ( dimentions && dimentions.y ? dimentions.y : 0 ) + 'px)'
     });
+    
     //Change content based on type
     switch(obj.type){
       case 'text':
@@ -59,7 +61,7 @@ export default class Obj extends  React.Component {
     }
 
     return (
-        <div ref="obj" className="object" 
+        <div key='object' ref="obj" className="object" 
           onMouseEnter={this.onMouseEnter}
           onMouseLeave={this.onMouseLeave}
           onClick={this.onClick}

@@ -30,16 +30,42 @@ export default class Designer extends React.Component {
             data: {
               text: 'Hello world',              
             }
-          } 
+          },
+          { 
+            id: 'object2', 
+            spreadId: 'spread1',
+            pageId: 'page1',
+            type: 'text',
+            dimentions: {
+              x: 70,
+              y: 160
+            },
+            style: {
+              fontFamily: 'san-serif',
+              color: '#FF0000',
+              fontSize: 24
+            },
+            data: {
+              text: 'Hello world',              
+            }
+          }  
         ]
       }
-
     }
+
+    this.updateFile = this.updateFile.bind(this);
   }
+
+  updateFile(file){
+    this.setState({
+      file: file
+    })
+  }
+
   render () {
     return (
       <div className="designer"> 
-          <Canvas {...{ file: this.state.file }} />
+          <Canvas {...{ file: this.state.file, updateFile: this.updateFile }} />
       </div>
     );
   }

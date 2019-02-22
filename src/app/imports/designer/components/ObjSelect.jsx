@@ -1,14 +1,113 @@
 import React from 'react';
 import _ from 'lodash';
 import * as d3 from "d3";
+import * as fileUtils from '../utils/fileUtils.jsx';
 
 import '../../../styles/designer/components/objSelect.less';
 
-let coords = {
-  x: 0,
-  y: 0
+//Resize nodes for object selection
+export class ResizeNode extends  React.Component {
+  constructor(props, context) {
+    super(props, context);
+    this.state = {
+      mouseDown: false,
+      startX: 0,
+      startY: 0,
+      objX: 0,
+      objY: 0,
+      objWidth: 0,
+      objHeight: 0,
+    }
+    this.onMouseMove = this.onMouseMove.bind(this);
+    this.onMouseUp = this.onMouseUp.bind(this);
+    this.onMouseDown = this.onMouseDown.bind(this);
+  }
+
+  componentDidMount(){
+    window.addEventListener('mousemove', this.onMouseMove);
+    window.addEventListener('mouseup', this.onMouseUp);
+  }
+
+  componentWillUnmount(){
+    window.removeEventListener('mousemove', this.onMouseMove);
+    window.removeEventListener('mouseup', this.onMouseUp)
+  }
+
+  onMouseDown(event){
+    if(!this.state.mouseDown){ 
+      console.log('ghk')
+      
+      this.setState({
+        startX: event.pageX,
+        startY: event.pageY,
+        objX: this.props.objX,
+        objY: this.props.objY,
+        objWidth: this.props.objWidth,
+        objHeight: this.props.objHeight,
+        mouseDown: true
+      }) 
+    }
+  }
+
+  onMouseUp(){
+    if(this.state.mouseDown){ 
+      this.setState({ mouseDown: false }) 
+    }
+  }
+
+  //Dragging Resize Node
+  onMouseMove(event){
+    if(this.state.mouseDown){
+      let x = event.pageX - this.state.startX;
+      let y = event.pageY - this.state.startY;
+      let objWidth = this.state.objWidth;
+      let objHeight = this.state.objHeight;    
+      let objX = this.state.objX;
+      let objY = this.state.objY;
+  
+      console.log({
+        objX, x, objY, y, objWidth, objHeight
+      })
+  
+      
+      switch ( this.props.x ){
+        case 'left':
+          objX += x;  
+          objWidth -= x;      
+        break;
+        case 'right':
+          objWidth += x;
+        break;
+      }
+  
+      switch ( this.props.y ){
+        case 'top':
+          objY += y;
+          objHeight -= y;
+        break;
+        case 'bottom':
+          objHeight += y;
+        break;
+      }
+  
+      this.props.updateDimentions({
+        width: objWidth,
+        height: objHeight,
+        x: objX,
+        y: objY
+      });         
+    }
+  }
+
+  render(){
+    return (
+      <div ref="resizeNode" onMouseDown={this.onMouseDown} className={"dragNode abs-" + (this.props.x) + "-" + (this.props.y)}></div>
+    )
+  }
 }
 
+
+// Object Selection
 export default class Obj extends  React.Component {
   constructor(props, context) {
     super(props, context);
@@ -21,25 +120,21 @@ export default class Obj extends  React.Component {
         mouseDown: false
     }
     this.select = this.select.bind(this);
-    this.drag = this.drag.bind(this);
-    this.onDrag = this.onDrag.bind(this);
-    this.endDrag = this.endDrag.bind(this);
+    this.objectDrag = this.objectDrag.bind(this);
+    this.onObjectDrag = this.onObjectDrag.bind(this);
     this.onMouseDown = this.onMouseDown.bind(this);
     this.onMouseUp = this.onMouseUp.bind(this);
+    this.updateDimentions = this.updateDimentions.bind(this);
   }
 
 
   componentDidMount(){
-    let objSelect = d3.select(this.refs["objSelect"]);
-    objSelect.on('touchStart', (d) => {
-      coords.x = d3.event.touches[0].clientX;
-      coords.y = d3.event.touches[0].clientY;
-    }).on("touchmove", () => {
-      this.onDrag();
-    }).on("touchend", () => {
-        this.endDrag();
-    });
-    objSelect.call(this.drag());
+    //Drag Event for moving object
+    let objSelect = d3.select(this.refs.objSelect);
+    objSelect.call(this.objectDrag());
+
+
+    //Deselecteding object on mouse click
     window.addEventListener('mouseup', () => {
       if(this.state.selected && !this.state.mouseDown){
         this.select({});        
@@ -48,53 +143,33 @@ export default class Obj extends  React.Component {
       }
     });
   }
-  
-  onDrag(){
+
+  //Dragging Object
+  onObjectDrag(){
+    console.log('drag')
     let x = 0;
     let y = 0;
-    if(d3.event.touches){
-      x = d3.event.touches[0].clientX - coords.x;
-      y = d3.event.touches[0].clientY - coords.y;
-    }else{
       x = this.state.x + d3.event.dx;
       y = this.state.y + d3.event.dy;
-    }
-    this.setState({
+    this.updateDimentions({
       x: x,
       y: y
-    },() => {
-      _.filter(this.props.file.objects, (object, index) => {
-        if(object.id === this.state.id){
-          object.dimentions.x = x;
-          object.dimentions.y = y;
-        }
-      });
-
-      console.log(this.props.file)
-      
     });
   }
 
-  endDrag(){
-
-  }
-
-  drag() {
+  objectDrag() {
     const dragEvent = d3.drag()
     .on("drag", () => {
-        this.onDrag();
-    })
-    .on('end', () => {
-        this.endDrag();
-    })
+        this.onObjectDrag();
+    });
     return dragEvent;
-}
+  }
 
-  onMouseDown(){
+  onMouseDown(event){
     this.setState({ mouseDown: true })
   }
 
-  onMouseUp(){
+  onMouseUp(event){
     this.setState({ mouseDown: false })
   }
   
@@ -123,6 +198,13 @@ export default class Obj extends  React.Component {
     this.setState(setState);
   }
 
+  updateDimentions(dimentionsData){
+    this.setState(dimentionsData)
+    this.props.updateFile(fileUtils.updateObject(this.props.file,this.state.id,{
+      dimentions: dimentionsData
+    }));
+  }
+
   render () {
     let style = {
       width: this.state.width,
@@ -133,14 +215,14 @@ export default class Obj extends  React.Component {
         <div ref="objSelect" className={"objSelect" + (this.state.selected ? ' show' : '')}
           onMouseDown={this.onMouseDown}
           style={style}>
-          <div className="dragNode abs-left-top"></div>
-          <div className="dragNode abs-center-top"></div>
-          <div className="dragNode abs-right-top"></div>
-          <div className="dragNode abs-left-center"></div>
-          <div className="dragNode abs-right-center"></div>
-          <div className="dragNode abs-left-bottom"></div>
-          <div className="dragNode abs-center-bottom"></div>
-          <div className="dragNode abs-right-bottom"></div>
+            <ResizeNode x="left" y="top" {... this.props } {...{ objWidth: this.state.width, objHeight: this.state.height, objX: this.state.x, objY: this.state.y, updateDimentions: this.updateDimentions }} />
+            <ResizeNode x="center" y="top" {... this.props } {...{ objWidth: this.state.width, objHeight: this.state.height, objX: this.state.x, objY: this.state.y, updateDimentions: this.updateDimentions }} />
+            <ResizeNode x="right" y="top" {... this.props } {...{ objWidth: this.state.width, objHeight: this.state.height, objX: this.state.x, objY: this.state.y, updateDimentions: this.updateDimentions }} />
+            <ResizeNode x="right" y="center" {... this.props } {...{ objWidth: this.state.width, objHeight: this.state.height, objX: this.state.x, objY: this.state.y, updateDimentions: this.updateDimentions }} />
+            <ResizeNode x="left" y="center" {... this.props } {...{ objWidth: this.state.width, objHeight: this.state.height, objX: this.state.x, objY: this.state.y, updateDimentions: this.updateDimentions }} />
+            <ResizeNode x="left" y="bottom" {... this.props } {...{ objWidth: this.state.width, objHeight: this.state.height, objX: this.state.x, objY: this.state.y, updateDimentions: this.updateDimentions }} />
+            <ResizeNode x="center" y="bottom" {... this.props } {...{ objWidth: this.state.width, objHeight: this.state.height, objX: this.state.x, objY: this.state.y, updateDimentions: this.updateDimentions }} />
+            <ResizeNode x="right" y="bottom" {... this.props } {...{ objWidth: this.state.width, objHeight: this.state.height, objX: this.state.x, objY: this.state.y, updateDimentions: this.updateDimentions }} />
         </div>
     );
   }
